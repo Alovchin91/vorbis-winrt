@@ -120,7 +120,7 @@ static inline int vorbis_ftoi(double f){  /* yes, double!  Otherwise,
 
 /* MSVC inline assembly. 32 bit only; inline ASM isn't implemented in the
  * 64 bit compiler */
-#if defined(_MSC_VER) && !defined(_WIN64) && !defined(_WIN32_WCE) && !defined(_WINRT_DLL)
+#if defined(_MSC_VER) && !defined(_WIN64) && !defined(_WIN32_WCE) && !defined(_M_ARM)
 #  define VORBIS_FPU_CONTROL
 
 typedef ogg_int16_t vorbis_fpu_control;
@@ -170,7 +170,7 @@ static __inline void vorbis_fpu_restore(vorbis_fpu_control fpu){
 
 /* If no special implementation was found for the current compiler / platform,
    use the default implementation here: */
-#if !defined(VORBIS_FPU_CONTROL) || defined(_WINRT_DLL)
+#if !defined(VORBIS_FPU_CONTROL) || defined(_M_ARM)
 
 typedef int vorbis_fpu_control;
 
