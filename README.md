@@ -24,30 +24,17 @@ Note that if something goes wrong, the `OggVorbisFile.Open()` method will throw 
 
 Now, to get a sample from the decoder, you can write a simple method like this:
 
-
-Now, to create a `MediaStreamSource` you will need these four properties of media stream: sample rate, channel count, bits per sample count and duration. Here's how you can get those:
-
-    var info = this._vorbisFile.Info(-1);
-    var sampleRate = Convert.ToUInt32(info.Rate);
-    var channelCount = Convert.ToUInt32(info.Channels)
-    var bitsPerSample = 16; // !
-    var duration = this._vorbisFile.TimeTotal(-1);
-
-Note those `-1` parameters: they allow to receive info about the whole physical bitstream instead of separate logical bitstreams withing an OGG file. I'll make overloads for these methods in the next commit. Also note that bits per sample is set to 16. Actually, OGG supports 8 and 16 bit samples, but at least currently Windows Runtime class hardcodes 16 bit samples (it is done in `OggVorbisFile.Read` method, on `::ov_read` call - you can see parameters `2, 1` there - it's 2 byte = 16 bit samples with big endian encoding that is needed for MSS). You can change this value of course, but note that even good quality files will have not-such-good quality then.
-
-Finally, what you will need when you will report samples to MSS, is the length of the sample. Since actually buffer size is established by Ogg Vorbis codec, and moreover there might be VBR files, you shouldn't hardcode this value. Here's how you can get it (just like in FLAC's `WaveInputStream`):
-
-    public double GetDurationFromBufferSize(uint bufferSize)
+    public IBuffer GetSample()
     {
-        MediaStreamInfo streamInfo = this.GetStreamInfo();
-
-        if (streamInfo.BytesPerSecond == 0)
-            return 0;
-
-        return (double)bufferSize / streamInfo.BytesPerSecond;
+        if (!this._vorbisFile.IsValid)
+            throw new InvalidOperationException();
+        
+        IBuffer sample;
+        int bitstream;
+        this._vorbisFile.Read(out sample, 4096, out bitstream);
+        
+        return sample;
     }
-
-I hope this helps :)
 
 **Seeking is not yet implemented.**
 
