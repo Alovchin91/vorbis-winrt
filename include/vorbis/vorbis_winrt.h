@@ -106,11 +106,11 @@ namespace libvorbisfile {
 			}
 
 			property int BitrateLower {
-				int get() { return vi_->bitrate_nominal; }
+				int get() { return vi_->bitrate_lower; }
 			}
 
 			property int BitrateWindow {
-				int get() { return vi_->bitrate_nominal; }
+				int get() { return vi_->bitrate_window; }
 			}
 
 		internal:
