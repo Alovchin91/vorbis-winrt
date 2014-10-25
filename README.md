@@ -43,3 +43,9 @@ public IBuffer GetSample(int length)
 **vorbis-winrt** includes all the necessary source code to build the libraries. Ogg Vorbis for Windows Runtime solution includes original Vorbis libraries and their dependencies, including [libogg](http://downloads.xiph.org/releases/ogg/), and contains libvorbisfile_winrt project that is the main output of the solution.
 
 You will need Visual Studio 2013 or higher to build the library for Windows (Phone) 8.1 or higher. All the projects currently are set up to build for Windows Phone 8.1, but it's easy to retarget them for Windows 8.1 or higher.
+
+## How to create a media stream source
+
+Use the link bellow or check the wiki.
+
+https://github.com/Alovchin91/vorbis-winrt/wiki/MediaStream-Source
