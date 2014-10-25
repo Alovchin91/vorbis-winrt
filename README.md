@@ -6,7 +6,50 @@ Ogg Vorbis for Windows Runtime currently only exposes a decoding functionality f
 
 ## Sample usage
 
-COMING SOON
+**vorbis-winrt**'s API is similar to original [Vorbisfile API](http://xiph.org/vorbis/doc/vorbisfile/index.html), except that it's object-oriented. The main class that you will use to decode an Ogg Vorbis file stream is `libvorbisfile.WindowsRuntime.OggVorbisFile` class. Instantiate the class and then call `OggVorbisFile.Open` to initialize the stream decoder. To get samples from the decoder, simply use `OggVorbisFile.Read` method.
+
+**Coming soon**: Example solution containing sample Windows Phone 8.1 background audio project that uses Ogg Vorbis for Windows Runtime.
+
+Here's the sample usage. Assume you have a managed helper class with `OggVorbisFile _vorbisFile` field that is supposed to help you wrap all the decoder logic. Here's how you initialize the decoder:
+
+    public void Initialize(IRandomAccessStream fileStream)
+    {
+        this._vorbisFile.Open(fileStream, null);
+        
+        if (!this._vorbisFile.IsValid)
+            throw new InvalidOperationException();
+    }
+
+Note that if something goes wrong, the `OggVorbisFile.Open()` method will throw an exception with HResult equal to one of libvorbis' [return codes](http://xiph.org/vorbis/doc/libvorbis/return.html), but still it's recommended to check for `OggVorbisFile.IsValid` each time you call any `OggVorbisFile` API.
+
+Now, to get a sample from the decoder, you can write a simple method like this:
+
+
+Now, to create a `MediaStreamSource` you will need these four properties of media stream: sample rate, channel count, bits per sample count and duration. Here's how you can get those:
+
+    var info = this._vorbisFile.Info(-1);
+    var sampleRate = Convert.ToUInt32(info.Rate);
+    var channelCount = Convert.ToUInt32(info.Channels)
+    var bitsPerSample = 16; // !
+    var duration = this._vorbisFile.TimeTotal(-1);
+
+Note those `-1` parameters: they allow to receive info about the whole physical bitstream instead of separate logical bitstreams withing an OGG file. I'll make overloads for these methods in the next commit. Also note that bits per sample is set to 16. Actually, OGG supports 8 and 16 bit samples, but at least currently Windows Runtime class hardcodes 16 bit samples (it is done in `OggVorbisFile.Read` method, on `::ov_read` call - you can see parameters `2, 1` there - it's 2 byte = 16 bit samples with big endian encoding that is needed for MSS). You can change this value of course, but note that even good quality files will have not-such-good quality then.
+
+Finally, what you will need when you will report samples to MSS, is the length of the sample. Since actually buffer size is established by Ogg Vorbis codec, and moreover there might be VBR files, you shouldn't hardcode this value. Here's how you can get it (just like in FLAC's `WaveInputStream`):
+
+    public double GetDurationFromBufferSize(uint bufferSize)
+    {
+        MediaStreamInfo streamInfo = this.GetStreamInfo();
+
+        if (streamInfo.BytesPerSecond == 0)
+            return 0;
+
+        return (double)bufferSize / streamInfo.BytesPerSecond;
+    }
+
+I hope this helps :)
+
+**Seeking is not yet implemented.**
 
 ## How to build
 
