@@ -15,7 +15,7 @@ Here's the sample usage. Assume you have a managed helper class with `OggVorbisF
 ```cs
 public void Initialize(IRandomAccessStream fileStream)
 {
-    this._vorbisFile.Open(fileStream, null);
+    this._vorbisFile.Open(fileStream);
     
     if (!this._vorbisFile.IsValid)
         throw new InvalidOperationException();
@@ -27,16 +27,12 @@ Note that if something goes wrong, the `OggVorbisFile.Open()` method will throw 
 Now, to get a sample from the decoder, you can write a simple method like this:
 
 ```cs
-public IBuffer GetSample()
+public IBuffer GetSample(int length)
 {
     if (!this._vorbisFile.IsValid)
         throw new InvalidOperationException();
     
-    IBuffer sample;
-    int bitstream;
-    this._vorbisFile.Read(out sample, 4096, out bitstream);
-    
-    return sample;
+    return this._vorbisFile.Read(length);
 }
 ```
 
