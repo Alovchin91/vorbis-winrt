@@ -156,9 +156,11 @@ namespace libvorbisfile {
 			*buffer = nullptr;
 			Windows::Storage::Streams::IBuffer^ temp = ref new Windows::Storage::Streams::Buffer((unsigned)length);
 			uint8 *temp_array = get_array(temp);
-			long ret = ::ov_read(vf_, reinterpret_cast<char *>(temp_array), length, 0, 1, 0, bitstream);
-			if (ret > 0)
+			long ret = ::ov_read(vf_, reinterpret_cast<char *>(temp_array), length, 0, 2, 1, bitstream);
+			if (ret > 0) {
+				temp->Length = ret;
 				*buffer = temp;
+			}
 			else if (ret < 0)
 				throw Platform::Exception::CreateException(ret);
 		}
@@ -290,8 +292,8 @@ namespace libvorbisfile {
 		{
 			OggVorbisFile^ instance = reinterpret_cast<OggVorbisFile^>(datasource);
 			assert(nullptr != instance && instance->IsValid);
-			if (1 == size && nmemb > 0) {
-				unsigned count = concurrency::create_task(instance->file_reader_->LoadAsync(nmemb)).get();
+			if (nmemb > 0) {
+				unsigned count = concurrency::create_task(instance->file_reader_->LoadAsync(size * nmemb)).get();
 				if (count > 0) {
 					instance->file_reader_->ReadBytes(Platform::ArrayReference<uint8>(reinterpret_cast<uint8 *>(ptr), count));
 					return count;
