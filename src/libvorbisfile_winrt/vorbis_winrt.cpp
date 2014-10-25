@@ -304,7 +304,19 @@ namespace libvorbisfile {
 		{
 			OggVorbisFile^ instance = reinterpret_cast<OggVorbisFile^>(datasource);
 			assert(nullptr != instance && instance->IsValid);
-			instance->file_stream_->Seek((unsigned long long)(whence + offset));
+			switch (whence) {
+			case SEEK_CUR:
+				instance->file_stream_->Seek(instance->file_stream_->Position + (uint64)offset);
+				break;
+			case SEEK_END:
+				instance->file_stream_->Seek(instance->file_stream_->Size - (uint64)offset);
+				break;
+			case SEEK_SET:
+				instance->file_stream_->Seek((uint64)offset);
+				break;
+			default:
+				throw ref new Platform::InvalidArgumentException("whence");
+			}			
 			return 0;
 		}
 
