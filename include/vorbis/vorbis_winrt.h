@@ -131,25 +131,37 @@ namespace libvorbisfile {
 			 */
 			property bool IsValid { bool get(); }
 
+			void Open(Windows::Storage::Streams::IRandomAccessStream^ fileStream);
 			void Open(Windows::Storage::Streams::IRandomAccessStream^ fileStream, Windows::Storage::Streams::IBuffer^ initial);
 			void Clear();
+
+			static OggVorbisFile^ TestOpen(Windows::Storage::Streams::IRandomAccessStream^ fileStream);
 			static OggVorbisFile^ TestOpen(Windows::Storage::Streams::IRandomAccessStream^ fileStream, Windows::Storage::Streams::IBuffer^ initial);
 
-			void Read(Windows::Storage::Streams::IBuffer^ *buffer, int length, int *bitstream);
+			Windows::Storage::Streams::IBuffer^ Read(int length);
+			Windows::Storage::Streams::IBuffer^ Read(int length, int *bitstream);
+			
 			static void Crosslap(OggVorbisFile^ oldFile, OggVorbisFile^ newFile);
 
+			int Bitrate();
 			int Bitrate(int bitstream);
 			int BitrateInstant();
 			int Streams();
 			bool Seekable();
+			int SerialNumber();
 			int SerialNumber(int bitstream);
+			ogg_int64_t RawTotal();
 			ogg_int64_t RawTotal(int bitstream);
+			ogg_int64_t PcmTotal();
 			ogg_int64_t PcmTotal(int bitstream);
+			double TimeTotal();
 			double TimeTotal(int bitstream);
 			ogg_int64_t RawTell();
 			ogg_int64_t PcmTell();
 			double TimeTell();
+			VorbisInfo^ Info();
 			VorbisInfo^ Info(int bitstream);
+			VorbisComment^ Comment();
 			VorbisComment^ Comment(int bitstream);
 
 		private:

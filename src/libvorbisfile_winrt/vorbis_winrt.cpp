@@ -64,6 +64,11 @@ namespace libvorbisfile {
 			return nullptr != vf_ && nullptr != file_stream_ && nullptr != file_reader_;
 		}
 
+		void OggVorbisFile::Open(Windows::Storage::Streams::IRandomAccessStream^ fileStream)
+		{
+			Open(fileStream, nullptr);
+		}
+
 		void OggVorbisFile::Open(Windows::Storage::Streams::IRandomAccessStream^ fileStream, Windows::Storage::Streams::IBuffer^ initial)
 		{
 			Clear();
@@ -111,6 +116,11 @@ namespace libvorbisfile {
 			file_stream_ = nullptr;
 		}
 
+		OggVorbisFile^ OggVorbisFile::TestOpen(Windows::Storage::Streams::IRandomAccessStream^ fileStream)
+		{
+			return OggVorbisFile::TestOpen(fileStream, nullptr);
+		}
+
 		OggVorbisFile^ OggVorbisFile::TestOpen(Windows::Storage::Streams::IRandomAccessStream^ fileStream, Windows::Storage::Streams::IBuffer^ initial)
 		{
 			OggVorbisFile^ file = ref new OggVorbisFile();
@@ -150,21 +160,25 @@ namespace libvorbisfile {
 			return file;
 		}
 
-		void OggVorbisFile::Read(Windows::Storage::Streams::IBuffer^ *buffer, int length, int *bitstream)
+		Windows::Storage::Streams::IBuffer^ OggVorbisFile::Read(int length)
+		{
+			int dummy;
+			return Read(length, &dummy);
+		}
+
+		Windows::Storage::Streams::IBuffer^ OggVorbisFile::Read(int length, int *bitstream)
 		{
 			assert(IsValid);
 
-			*buffer = nullptr;
-			Windows::Storage::Streams::IBuffer^ temp = ref new Windows::Storage::Streams::Buffer((unsigned)length);
-			uint8 *temp_array = get_array(temp);
+			Windows::Storage::Streams::IBuffer^ buffer = ref new Windows::Storage::Streams::Buffer((unsigned)length);
+			uint8 *buffer_array = get_array(buffer);
 
-			long ret = ::ov_read(vf_, reinterpret_cast<char *>(temp_array), length, 0, 2, 1, bitstream);
+			long ret = ::ov_read(vf_, reinterpret_cast<char *>(buffer_array), length, 0, 2, 1, bitstream);
 			if (ret < 0)
 				throw Platform::Exception::CreateException(ret);
-			else {
-				temp->Length = ret;
-				*buffer = temp;
-			}
+
+			buffer->Length = ret;
+			return buffer;
 		}
 
 		void OggVorbisFile::Crosslap(OggVorbisFile^ oldFile, OggVorbisFile^ newFile)
@@ -174,6 +188,11 @@ namespace libvorbisfile {
 			int ret = ::ov_crosslap(oldFile->vf_, newFile->vf_);
 			if (ret < 0)
 				throw Platform::Exception::CreateException(ret);
+		}
+
+		int OggVorbisFile::Bitrate()
+		{
+			return Bitrate(-1);
 		}
 
 		int OggVorbisFile::Bitrate(int bitstream)
@@ -210,6 +229,11 @@ namespace libvorbisfile {
 			return !!(::ov_seekable(vf_));
 		}
 
+		int OggVorbisFile::SerialNumber()
+		{
+			return SerialNumber(-1);
+		}
+
 		int OggVorbisFile::SerialNumber(int bitstream)
 		{
 			assert(IsValid);
@@ -217,6 +241,11 @@ namespace libvorbisfile {
 			if (-1 == ret)
 				throw ref new Platform::InvalidArgumentException("bitstream does not exist");
 			return ret;
+		}
+
+		ogg_int64_t OggVorbisFile::RawTotal()
+		{
+			return RawTotal(-1);
 		}
 
 		ogg_int64_t OggVorbisFile::RawTotal(int bitstream)
@@ -228,6 +257,11 @@ namespace libvorbisfile {
 			return ret;
 		}
 
+		ogg_int64_t OggVorbisFile::PcmTotal()
+		{
+			return PcmTotal(-1);
+		}
+
 		ogg_int64_t OggVorbisFile::PcmTotal(int bitstream)
 		{
 			assert(IsValid);
@@ -235,6 +269,11 @@ namespace libvorbisfile {
 			if (OV_EINVAL == ret)
 				throw ref new Platform::InvalidArgumentException();
 			return ret;
+		}
+
+		double OggVorbisFile::TimeTotal()
+		{
+			return TimeTotal(-1);
 		}
 
 		double OggVorbisFile::TimeTotal(int bitstream)
@@ -273,22 +312,30 @@ namespace libvorbisfile {
 			return ret;
 		}
 
+		VorbisInfo^ OggVorbisFile::Info()
+		{
+			return Info(-1);
+		}
+
 		VorbisInfo^ OggVorbisFile::Info(int bitstream)
 		{
 			assert(IsValid);
 			::vorbis_info *vi = ::ov_info(vf_, bitstream);
-			if (vi) return ref new VorbisInfo(vi);
-			return nullptr;
+			return vi ? ref new VorbisInfo(vi) : nullptr;
+		}
+
+		VorbisComment^ OggVorbisFile::Comment()
+		{
+			return Comment(-1);
 		}
 
 		VorbisComment^ OggVorbisFile::Comment(int bitstream)
 		{
 			assert(IsValid);
 			::vorbis_comment *vc = ::ov_comment(vf_, bitstream);
-			if (vc) return ref new VorbisComment(vc);
-			return nullptr;
+			return vc ? ref new VorbisComment(vc) : nullptr;
 		}
-		
+
 
 		size_t OggVorbisFile::read_func_(void *ptr, size_t size, size_t nmemb, void *datasource)
 		{
@@ -320,7 +367,7 @@ namespace libvorbisfile {
 				break;
 			default:
 				throw ref new Platform::InvalidArgumentException("whence");
-			}			
+			}
 			return 0;
 		}
 
