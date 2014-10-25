@@ -153,16 +153,18 @@ namespace libvorbisfile {
 		void OggVorbisFile::Read(Windows::Storage::Streams::IBuffer^ *buffer, int length, int *bitstream)
 		{
 			assert(IsValid);
+
 			*buffer = nullptr;
 			Windows::Storage::Streams::IBuffer^ temp = ref new Windows::Storage::Streams::Buffer((unsigned)length);
 			uint8 *temp_array = get_array(temp);
+
 			long ret = ::ov_read(vf_, reinterpret_cast<char *>(temp_array), length, 0, 2, 1, bitstream);
-			if (ret > 0) {
+			if (ret < 0)
+				throw Platform::Exception::CreateException(ret);
+			else {
 				temp->Length = ret;
 				*buffer = temp;
 			}
-			else if (ret < 0)
-				throw Platform::Exception::CreateException(ret);
 		}
 
 		void OggVorbisFile::Crosslap(OggVorbisFile^ oldFile, OggVorbisFile^ newFile)
