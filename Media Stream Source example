@@ -1,0 +1,142 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Windows.Storage;
+using Windows.Storage.Streams;
+using Windows.Media;
+using Windows.Media.Core;
+using Windows.Media.MediaProperties;
+using Windows.Media.Editing;
+using libvorbisfile.WindowsRuntime;
+using libvorbisfile;
+
+
+namespace VorbisWinRT
+{
+  ///Sample usage: Create the class using the storage file you want to play.
+  ///call InitializeAsync
+  ///call BackgroundMediaPlayer.Current.SetStreamSource with Mss param.
+    public class VorbisNativeMediaStreamSource
+    {
+        MediaStreamSource mss;
+
+        public MediaStreamSource Mss
+        {
+            get { return mss; }
+            set { mss = value; }
+        }
+
+        StorageFile targetFile;
+        OggVorbisFile souceFile = new OggVorbisFile();
+        public StorageFile TargetFile
+        {
+            get { return targetFile; }
+            set { targetFile = value; }
+        }
+        public VorbisNativeMediaStreamSource(StorageFile file)
+        {
+            targetFile = file;
+        }
+        int blockAlign, avgBytesPerSec,
+        
+      
+        double decodedStreamDuration = 0;
+        /// <summary>
+        /// To be called before doing anything funky. Why? because of async calls and the need
+        /// to avoid possible deadlocks
+        /// </summary>
+        /// <returns></returns>
+        public async Task InitializeAsync()
+        {
+            try
+            {
+                ///open the souceFile. 
+                var ras = await targetFile.OpenAsync(FileAccessMode.Read);
+               
+                //Windows.Storage.Streams.Buffer bubi = new Windows.Storage.Streams.Buffer(200);
+                souceFile.Open(ras,null);
+                ///get the stuff you want from it.
+                ///
+                var info = souceFile.Info(0);
+
+                decodedStreamDuration = souceFile.TimeTotal(-1);
+                blockAlign = (info.Channels * (16 / 8));
+                avgBytesPerSec = blockAlign * info.Rate;
+                AudioEncodingProperties pcmprops = AudioEncodingProperties.CreatePcm((uint)info.Rate, (uint)info.Channels, 16);
+
+                mss = new MediaStreamSource(new AudioStreamDescriptor(pcmprops));
+                mss.BufferTime = TimeSpan.Zero;
+                mss.Duration = TimeSpan.FromSeconds(decodedStreamDuration);
+                mss.Closed += mss_Closed;
+                mss.Starting += mss_Starting;
+                mss.SampleRequested += mss_SampleRequested;
+
+                initalized = true;
+            }
+            catch(Exception e)
+            {
+                e.ToString();
+            }
+        }
+        double secondsPosition = 0;
+        void mss_SampleRequested(MediaStreamSource sender, MediaStreamSourceSampleRequestedEventArgs args)
+        {
+            var deferal = args.Request.GetDeferral();
+            try
+            {
+                var x = souceFile.Read(4096);
+                if (x.Length > 0)
+                {
+                    MediaStreamSample sample = MediaStreamSample.CreateFromBuffer(x, TimeSpan.FromSeconds(secondsPosition));
+                    sample.Duration = TimeSpan.FromSeconds(GetDurationFromBufferSize(x.Length));
+                    secondsPosition += sample.Duration.TotalSeconds;
+                    args.Request.Sample = sample;
+                }
+            }
+            catch { }
+
+            deferal.Complete();
+
+
+        }
+        public double GetDurationFromBufferSize(uint bufferSize)
+        {
+
+
+            if (avgBytesPerSec == 0)
+                return 0;
+
+            return (double)bufferSize / avgBytesPerSec;
+        }
+        void mss_Starting(MediaStreamSource sender, MediaStreamSourceStartingEventArgs args)
+        {
+            if (args.Request.StartPosition == null)
+            {
+                args.Request.SetActualStartPosition(TimeSpan.FromSeconds(0));
+            }
+            else if (args.Request.StartPosition != null)
+            {
+                var seconds = args.Request.StartPosition.Value.TotalSeconds;
+                var byteOffset = avgBytesPerSec * seconds;
+                secondsPosition = seconds;
+                
+                ///TBA: seek mtherfucker
+            }
+          
+            args.Request.GetDeferral().Complete();
+        }
+
+        void mss_Closed(MediaStreamSource sender, MediaStreamSourceClosedEventArgs args)
+        {
+            mss.Closed -= mss_Closed;
+            mss.Starting -= mss_Starting;
+            mss.SampleRequested -= mss_SampleRequested;
+            mss = null;
+            souceFile.Clear();
+            souceFile.Dispose();
+            souceFile = null;
+        }
+    }
+}
