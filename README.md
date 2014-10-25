@@ -12,29 +12,33 @@ Ogg Vorbis for Windows Runtime currently only exposes a decoding functionality f
 
 Here's the sample usage. Assume you have a managed helper class with `OggVorbisFile _vorbisFile` field that is supposed to help you wrap all the decoder logic. Here's how you initialize the decoder:
 
-    public void Initialize(IRandomAccessStream fileStream)
-    {
-        this._vorbisFile.Open(fileStream, null);
-        
-        if (!this._vorbisFile.IsValid)
-            throw new InvalidOperationException();
-    }
+```cs
+public void Initialize(IRandomAccessStream fileStream)
+{
+    this._vorbisFile.Open(fileStream, null);
+    
+    if (!this._vorbisFile.IsValid)
+        throw new InvalidOperationException();
+}
+```
 
 Note that if something goes wrong, the `OggVorbisFile.Open()` method will throw an exception with HResult equal to one of libvorbis' [return codes](http://xiph.org/vorbis/doc/libvorbis/return.html), but still it's recommended to check for `OggVorbisFile.IsValid` each time you call any `OggVorbisFile` API.
 
 Now, to get a sample from the decoder, you can write a simple method like this:
 
-    public IBuffer GetSample()
-    {
-        if (!this._vorbisFile.IsValid)
-            throw new InvalidOperationException();
-        
-        IBuffer sample;
-        int bitstream;
-        this._vorbisFile.Read(out sample, 4096, out bitstream);
-        
-        return sample;
-    }
+```cs
+public IBuffer GetSample()
+{
+    if (!this._vorbisFile.IsValid)
+        throw new InvalidOperationException();
+    
+    IBuffer sample;
+    int bitstream;
+    this._vorbisFile.Read(out sample, 4096, out bitstream);
+    
+    return sample;
+}
+```
 
 **Seeking is not yet implemented.**
 
