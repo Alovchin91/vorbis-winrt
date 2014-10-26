@@ -140,8 +140,20 @@ namespace libvorbisfile {
 
 			Windows::Storage::Streams::IBuffer^ Read(int length);
 			Windows::Storage::Streams::IBuffer^ Read(int length, int *bitstream);
-			
+
 			static void Crosslap(OggVorbisFile^ oldFile, OggVorbisFile^ newFile);
+
+			void RawSeek(ogg_int64_t pos);
+			void PcmSeek(ogg_int64_t pos);
+			void TimeSeek(double pos);
+			void PcmSeekPage(ogg_int64_t pos);
+			void TimeSeekPage(double pos);
+
+			void RawSeekLap(ogg_int64_t pos);
+			void PcmSeekLap(ogg_int64_t pos);
+			void TimeSeekLap(double pos);
+			void PcmSeekPageLap(ogg_int64_t pos);
+			void TimeSeekPageLap(double pos);
 
 			int Bitrate();
 			int Bitrate(int bitstream);

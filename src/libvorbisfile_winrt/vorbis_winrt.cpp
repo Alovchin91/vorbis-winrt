@@ -190,6 +190,126 @@ namespace libvorbisfile {
 				throw Platform::Exception::CreateException(ret);
 		}
 
+		void OggVorbisFile::RawSeek(ogg_int64_t pos)
+		{
+			assert(IsValid);
+			int ret = ::ov_raw_seek(vf_, pos);
+			if (OV_EINVAL == ret)
+				throw ref new Platform::InvalidArgumentException();
+			if (OV_EFAULT == ret)
+				throw ref new Platform::FailureException();
+			if (ret < 0)
+				throw Platform::Exception::CreateException(ret);
+		}
+
+		void OggVorbisFile::PcmSeek(ogg_int64_t pos)
+		{
+			assert(IsValid);
+			int ret = ::ov_pcm_seek(vf_, pos);
+			if (OV_EINVAL == ret)
+				throw ref new Platform::InvalidArgumentException();
+			if (OV_EFAULT == ret)
+				throw ref new Platform::FailureException();
+			if (ret < 0)
+				throw Platform::Exception::CreateException(ret);
+		}
+
+		void OggVorbisFile::TimeSeek(double pos)
+		{
+			assert(IsValid);
+			int ret = ::ov_time_seek(vf_, pos);
+			if (OV_EINVAL == ret)
+				throw ref new Platform::InvalidArgumentException();
+			if (OV_EFAULT == ret)
+				throw ref new Platform::FailureException();
+			if (ret < 0)
+				throw Platform::Exception::CreateException(ret);
+		}
+
+		void OggVorbisFile::PcmSeekPage(ogg_int64_t pos)
+		{
+			assert(IsValid);
+			int ret = ::ov_pcm_seek_page(vf_, pos);
+			if (OV_EINVAL == ret)
+				throw ref new Platform::InvalidArgumentException();
+			if (OV_EFAULT == ret)
+				throw ref new Platform::FailureException();
+			if (ret < 0)
+				throw Platform::Exception::CreateException(ret);
+		}
+
+		void OggVorbisFile::TimeSeekPage(double pos)
+		{
+			assert(IsValid);
+			int ret = ::ov_time_seek_page(vf_, pos);
+			if (OV_EINVAL == ret)
+				throw ref new Platform::InvalidArgumentException();
+			if (OV_EFAULT == ret)
+				throw ref new Platform::FailureException();
+			if (ret < 0)
+				throw Platform::Exception::CreateException(ret);
+		}
+
+		void OggVorbisFile::RawSeekLap(ogg_int64_t pos)
+		{
+			assert(IsValid);
+			int ret = ::ov_raw_seek_lap(vf_, pos);
+			if (OV_EINVAL == ret)
+				throw ref new Platform::InvalidArgumentException();
+			if (OV_EFAULT == ret)
+				throw ref new Platform::FailureException();
+			if (ret < 0)
+				throw Platform::Exception::CreateException(ret);
+		}
+
+		void OggVorbisFile::PcmSeekLap(ogg_int64_t pos)
+		{
+			assert(IsValid);
+			int ret = ::ov_pcm_seek_lap(vf_, pos);
+			if (OV_EINVAL == ret)
+				throw ref new Platform::InvalidArgumentException();
+			if (OV_EFAULT == ret)
+				throw ref new Platform::FailureException();
+			if (ret < 0)
+				throw Platform::Exception::CreateException(ret);
+		}
+
+		void OggVorbisFile::TimeSeekLap(double pos)
+		{
+			assert(IsValid);
+			int ret = ::ov_time_seek_lap(vf_, pos);
+			if (OV_EINVAL == ret)
+				throw ref new Platform::InvalidArgumentException();
+			if (OV_EFAULT == ret)
+				throw ref new Platform::FailureException();
+			if (ret < 0)
+				throw Platform::Exception::CreateException(ret);
+		}
+
+		void OggVorbisFile::PcmSeekPageLap(ogg_int64_t pos)
+		{
+			assert(IsValid);
+			int ret = ::ov_pcm_seek_page_lap(vf_, pos);
+			if (OV_EINVAL == ret)
+				throw ref new Platform::InvalidArgumentException();
+			if (OV_EFAULT == ret)
+				throw ref new Platform::FailureException();
+			if (ret < 0)
+				throw Platform::Exception::CreateException(ret);
+		}
+
+		void OggVorbisFile::TimeSeekPageLap(double pos)
+		{
+			assert(IsValid);
+			int ret = ::ov_time_seek_page_lap(vf_, pos);
+			if (OV_EINVAL == ret)
+				throw ref new Platform::InvalidArgumentException();
+			if (OV_EFAULT == ret)
+				throw ref new Platform::FailureException();
+			if (ret < 0)
+				throw Platform::Exception::CreateException(ret);
+		}
+
 		int OggVorbisFile::Bitrate()
 		{
 			return Bitrate(-1);
