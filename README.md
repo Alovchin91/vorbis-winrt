@@ -6,7 +6,7 @@ Ogg Vorbis for Windows Runtime currently only exposes a decoding functionality f
 
 ## Sample usage
 
-**vorbis-winrt**'s API is similar to original [Vorbisfile API](http://xiph.org/vorbis/doc/vorbisfile/index.html), except that it's object-oriented. The main class that you will use to decode an Ogg Vorbis file stream is `libvorbisfile.WindowsRuntime.OggVorbisFile` class. Instantiate the class and then call `OggVorbisFile.Open` to initialize the stream decoder. To get samples from the decoder, simply use `OggVorbisFile.Read` method.
+**vorbis-winrt**'s API is similar to original [Vorbisfile API](http://xiph.org/vorbis/doc/vorbisfile/index.html), except that it's object-oriented. The main class that you will use to decode an Ogg Vorbis file stream is `Vorbisfile.WindowsRuntime.OggVorbisFile` class. Instantiate the class and then call `OggVorbisFile.Open` to initialize the stream decoder. To get samples from the decoder, simply use `OggVorbisFile.Read` method.
 
 **Coming soon**: Example solution containing sample Windows Phone 8.1 background audio project that uses Ogg Vorbis for Windows Runtime.
 

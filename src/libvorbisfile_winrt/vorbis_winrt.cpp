@@ -46,7 +46,7 @@ uint8 *get_array(Windows::Storage::Streams::IBuffer^ buffer)
 	return pReadBuffer;
 }
 
-namespace libvorbisfile {
+namespace Vorbisfile {
 
 	namespace WindowsRuntime {
 

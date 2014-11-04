@@ -48,7 +48,7 @@ Platform::String^ string_from_utf8(const char *str, int len = -1)
 	return ret;
 }
 
-namespace libvorbisfile {
+namespace Vorbisfile {
 
 	namespace WindowsRuntime {
 
