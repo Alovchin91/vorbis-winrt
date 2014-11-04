@@ -22,8 +22,8 @@
     <ProjectGuid>{222239a6-a7a9-4932-b62a-754a6d892121}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <ProjectName>libvorbisfile_winrt</ProjectName>
-    <TargetName>libvorbisfile</TargetName>
-    <RootNamespace>libvorbisfile</RootNamespace>
+    <TargetName>Vorbisfile.WindowsRuntime</TargetName>
+    <RootNamespace>Vorbisfile.WindowsRuntime</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
     <AppContainerApplication>true</AppContainerApplication>
