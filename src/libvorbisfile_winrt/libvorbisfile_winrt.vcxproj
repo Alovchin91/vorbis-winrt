@@ -140,6 +140,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SolutionDir)include\vorbis\vorbis_winrt.h" />
+    <ClInclude Include="internal.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vorbis_winrt.cpp" />

@@ -18,6 +18,9 @@
     <ClInclude Include="$(SolutionDir)include\vorbis\vorbis_winrt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="internal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vorbis_winrt.cpp">

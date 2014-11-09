@@ -30,25 +30,18 @@
  */
 
 #include "vorbis/vorbis_winrt.h"
-#include <inspectable.h>
-#include <robuffer.h>
-#include <ppltasks.h>
-
-/* get internal IBuffer array */
-static
-uint8 *get_array(Windows::Storage::Streams::IBuffer^ buffer)
-{
-	IInspectable *inspectable = reinterpret_cast<IInspectable *>(buffer);
-	Microsoft::WRL::ComPtr<Windows::Storage::Streams::IBufferByteAccess> spBuffAccess;
-	HRESULT hr = inspectable->QueryInterface(__uuidof(Windows::Storage::Streams::IBufferByteAccess), (void **)&spBuffAccess);
-	uint8 *pReadBuffer = nullptr;
-	spBuffAccess->Buffer(&pReadBuffer);
-	return pReadBuffer;
-}
 
 namespace Vorbisfile {
 
 	namespace WindowsRuntime {
+
+		const ::ov_callbacks ov_winrt_callbacks = {
+			OggVorbisFile::read_func,
+			OggVorbisFile::seek_func,
+			OggVorbisFile::close_func,
+			OggVorbisFile::tell_func
+		};
+
 
 		OggVorbisFile::OggVorbisFile()
 			: file_stream_(nullptr)
@@ -77,25 +70,18 @@ namespace Vorbisfile {
 			file_stream_ = fileStream;
 			file_reader_ = ref new Windows::Storage::Streams::DataReader(file_stream_);
 
-			::ov_callbacks callbacks = {
-				read_func_,
-				seek_func_,
-				close_func_,
-				tell_func_
-			};
+			char *initial_array = nullptr;
+			long initial_length = 0;
 
-			int ret;
-			if (nullptr != initial) {
-				char *initial_array = reinterpret_cast<char *>(get_array(initial));
-				ret = ::ov_open_callbacks((void *)this, vf_, const_cast<const char *>(initial_array), (long)initial->Length, callbacks);
-			}
-			else {
-				ret = ::ov_open_callbacks((void *)this, vf_, nullptr, 0, callbacks);
+			if (initial) {
+				initial_array = reinterpret_cast<char *>(get_array(initial));
+				initial_length = (long)initial->Length;
 			}
 
+			int ret = ::ov_open_callbacks((void *)this, vf_, initial_array, initial_length, ov_winrt_callbacks);
 			if (ret < 0) {
 				Clear();
-				throw Platform::Exception::CreateException(ret);
+				throw ref new Platform::COMException(ret);
 			}
 		}
 
@@ -112,6 +98,7 @@ namespace Vorbisfile {
 				(void)file_reader_->DetachStream();
 				delete file_reader_;
 			}
+
 			file_reader_ = nullptr;
 			file_stream_ = nullptr;
 		}
@@ -129,32 +116,24 @@ namespace Vorbisfile {
 			file->file_stream_ = fileStream;
 			file->file_reader_ = ref new Windows::Storage::Streams::DataReader(file->file_stream_);
 
-			::ov_callbacks callbacks = {
-				read_func_,
-				seek_func_,
-				close_func_,
-				tell_func_
-			};
+			char *initial_array = nullptr;
+			long initial_length = 0;
 
-			int ret;
-
-			if (nullptr != initial) {
-				char *initial_array = reinterpret_cast<char *>(get_array(initial));
-				ret = ::ov_test_callbacks((void *)file, file->vf_, const_cast<const char *>(initial_array), (long)initial->Length, callbacks);
-			}
-			else {
-				ret = ::ov_test_callbacks((void *)file, file->vf_, nullptr, 0, callbacks);
+			if (initial) {
+				initial_array = reinterpret_cast<char *>(get_array(initial));
+				initial_length = (long)initial->Length;
 			}
 
+			int ret = ::ov_test_callbacks((void *)file, file->vf_, initial_array, initial_length, ov_winrt_callbacks);
 			if (ret < 0) {
 				file->Clear();
-				throw Platform::Exception::CreateException(ret);
+				throw ref new Platform::COMException(ret);
 			}
 
 			ret = ::ov_test_open(file->vf_);
 			if (ret < 0) {
 				file->Clear();
-				throw Platform::Exception::CreateException(ret);
+				throw ref new Platform::COMException(ret);
 			}
 
 			return file;
@@ -175,7 +154,7 @@ namespace Vorbisfile {
 
 			long ret = ::ov_read(vf_, reinterpret_cast<char *>(buffer_array), length, 0, 2, 1, bitstream);
 			if (ret < 0)
-				throw Platform::Exception::CreateException(ret);
+				throw ref new Platform::COMException(ret);
 
 			buffer->Length = ret;
 			return buffer;
@@ -187,7 +166,7 @@ namespace Vorbisfile {
 			assert(newFile->IsValid);
 			int ret = ::ov_crosslap(oldFile->vf_, newFile->vf_);
 			if (ret < 0)
-				throw Platform::Exception::CreateException(ret);
+				throw ref new Platform::COMException(ret);
 		}
 
 		void OggVorbisFile::RawSeek(ogg_int64_t pos)
@@ -199,7 +178,7 @@ namespace Vorbisfile {
 			if (OV_EFAULT == ret)
 				throw ref new Platform::FailureException();
 			if (ret < 0)
-				throw Platform::Exception::CreateException(ret);
+				throw ref new Platform::COMException(ret);
 		}
 
 		void OggVorbisFile::PcmSeek(ogg_int64_t pos)
@@ -211,7 +190,7 @@ namespace Vorbisfile {
 			if (OV_EFAULT == ret)
 				throw ref new Platform::FailureException();
 			if (ret < 0)
-				throw Platform::Exception::CreateException(ret);
+				throw ref new Platform::COMException(ret);
 		}
 
 		void OggVorbisFile::TimeSeek(double pos)
@@ -223,7 +202,7 @@ namespace Vorbisfile {
 			if (OV_EFAULT == ret)
 				throw ref new Platform::FailureException();
 			if (ret < 0)
-				throw Platform::Exception::CreateException(ret);
+				throw ref new Platform::COMException(ret);
 		}
 
 		void OggVorbisFile::PcmSeekPage(ogg_int64_t pos)
@@ -235,7 +214,7 @@ namespace Vorbisfile {
 			if (OV_EFAULT == ret)
 				throw ref new Platform::FailureException();
 			if (ret < 0)
-				throw Platform::Exception::CreateException(ret);
+				throw ref new Platform::COMException(ret);
 		}
 
 		void OggVorbisFile::TimeSeekPage(double pos)
@@ -247,7 +226,7 @@ namespace Vorbisfile {
 			if (OV_EFAULT == ret)
 				throw ref new Platform::FailureException();
 			if (ret < 0)
-				throw Platform::Exception::CreateException(ret);
+				throw ref new Platform::COMException(ret);
 		}
 
 		void OggVorbisFile::RawSeekLap(ogg_int64_t pos)
@@ -259,7 +238,7 @@ namespace Vorbisfile {
 			if (OV_EFAULT == ret)
 				throw ref new Platform::FailureException();
 			if (ret < 0)
-				throw Platform::Exception::CreateException(ret);
+				throw ref new Platform::COMException(ret);
 		}
 
 		void OggVorbisFile::PcmSeekLap(ogg_int64_t pos)
@@ -271,7 +250,7 @@ namespace Vorbisfile {
 			if (OV_EFAULT == ret)
 				throw ref new Platform::FailureException();
 			if (ret < 0)
-				throw Platform::Exception::CreateException(ret);
+				throw ref new Platform::COMException(ret);
 		}
 
 		void OggVorbisFile::TimeSeekLap(double pos)
@@ -283,7 +262,7 @@ namespace Vorbisfile {
 			if (OV_EFAULT == ret)
 				throw ref new Platform::FailureException();
 			if (ret < 0)
-				throw Platform::Exception::CreateException(ret);
+				throw ref new Platform::COMException(ret);
 		}
 
 		void OggVorbisFile::PcmSeekPageLap(ogg_int64_t pos)
@@ -295,7 +274,7 @@ namespace Vorbisfile {
 			if (OV_EFAULT == ret)
 				throw ref new Platform::FailureException();
 			if (ret < 0)
-				throw Platform::Exception::CreateException(ret);
+				throw ref new Platform::COMException(ret);
 		}
 
 		void OggVorbisFile::TimeSeekPageLap(double pos)
@@ -307,7 +286,7 @@ namespace Vorbisfile {
 			if (OV_EFAULT == ret)
 				throw ref new Platform::FailureException();
 			if (ret < 0)
-				throw Platform::Exception::CreateException(ret);
+				throw ref new Platform::COMException(ret);
 		}
 
 		int OggVorbisFile::Bitrate()
@@ -322,7 +301,7 @@ namespace Vorbisfile {
 			if (OV_EINVAL == ret)
 				throw ref new Platform::InvalidArgumentException();
 			if (ret < 0)
-				throw Platform::Exception::CreateException(ret);
+				throw ref new Platform::COMException(ret);
 			return ret;
 		}
 
@@ -333,7 +312,7 @@ namespace Vorbisfile {
 			if (OV_EINVAL == ret)
 				throw ref new Platform::InvalidArgumentException();
 			if (ret < 0)
-				throw Platform::Exception::CreateException(ret);
+				throw ref new Platform::COMException(ret);
 			return ret;
 		}
 
@@ -457,12 +436,12 @@ namespace Vorbisfile {
 		}
 
 
-		size_t OggVorbisFile::read_func_(void *ptr, size_t size, size_t nmemb, void *datasource)
+		size_t OggVorbisFile::read_func(void *ptr, size_t size, size_t nmemb, void *datasource)
 		{
 			OggVorbisFile^ instance = reinterpret_cast<OggVorbisFile^>(datasource);
-			assert(nullptr != instance && instance->IsValid);
+			assert(instance && instance->file_reader_);
 			if (nmemb > 0) {
-				unsigned count = concurrency::create_task(instance->file_reader_->LoadAsync(size * nmemb)).get();
+				unsigned count = perform_synchronously(instance->file_reader_->LoadAsync(size * nmemb));
 				if (count > 0) {
 					instance->file_reader_->ReadBytes(Platform::ArrayReference<uint8>(reinterpret_cast<uint8 *>(ptr), count));
 					return count;
@@ -471,10 +450,10 @@ namespace Vorbisfile {
 			return 0;
 		}
 
-		int OggVorbisFile::seek_func_(void *datasource, ogg_int64_t offset, int whence)
+		int OggVorbisFile::seek_func(void *datasource, ogg_int64_t offset, int whence)
 		{
 			OggVorbisFile^ instance = reinterpret_cast<OggVorbisFile^>(datasource);
-			assert(nullptr != instance && instance->IsValid);
+			assert(instance && instance->file_stream_);
 			switch (whence) {
 			case SEEK_CUR:
 				instance->file_stream_->Seek(instance->file_stream_->Position + (uint64)offset);
@@ -491,20 +470,20 @@ namespace Vorbisfile {
 			return 0;
 		}
 
-		int OggVorbisFile::close_func_(void *datasource)
+		int OggVorbisFile::close_func(void *datasource)
 		{
 			OggVorbisFile^ instance = reinterpret_cast<OggVorbisFile^>(datasource);
-			assert(nullptr != instance && instance->IsValid);
+			assert(instance && instance->file_reader_);
 			(void)instance->file_reader_->DetachStream();
 			delete instance->file_reader_;
 			instance->file_reader_ = nullptr;
 			return 0;
 		}
 
-		long OggVorbisFile::tell_func_(void *datasource)
+		long OggVorbisFile::tell_func(void *datasource)
 		{
 			OggVorbisFile^ instance = reinterpret_cast<OggVorbisFile^>(datasource);
-			assert(nullptr != instance && instance->IsValid);
+			assert(instance && instance->file_stream_);
 			return (long)instance->file_stream_->Position;
 		}
 

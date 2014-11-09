@@ -30,23 +30,7 @@
  */
 
 #include "vorbisfile.h"
-#include <windows.h>
-
-/* convert UTF-8 to String */
-static
-Platform::String^ string_from_utf8(const char *str, int len = -1)
-{
-	if (!str) return nullptr;
-	if (len < 0) len = (int)strlen(str) + 1;
-	wchar_t *widestr = new wchar_t[len];
-	if (MultiByteToWideChar(CP_ACP, 0, str, len, widestr, len) == 0) {
-		delete[] widestr;
-		throw ref new Platform::InvalidArgumentException();
-	}
-	Platform::String^ ret = ref new Platform::String(widestr);
-	delete[] widestr;
-	return ret;
-}
+#include "internal.h"
 
 namespace Vorbisfile {
 
@@ -139,6 +123,7 @@ namespace Vorbisfile {
 			static OggVorbisFile^ TestOpen(Windows::Storage::Streams::IRandomAccessStream^ fileStream, Windows::Storage::Streams::IBuffer^ initial);
 
 			Windows::Storage::Streams::IBuffer^ Read(int length);
+			[Windows::Foundation::Metadata::DefaultOverloadAttribute]
 			Windows::Storage::Streams::IBuffer^ Read(int length, int *bitstream);
 
 			static void Crosslap(OggVorbisFile^ oldFile, OggVorbisFile^ newFile);
@@ -176,15 +161,16 @@ namespace Vorbisfile {
 			VorbisComment^ Comment();
 			VorbisComment^ Comment(int bitstream);
 
+		internal:
+			static size_t read_func(void *ptr, size_t size, size_t nmemb, void *datasource);
+			static int seek_func(void *datasource, ogg_int64_t offset, int whence);
+			static int close_func(void *datasource);
+			static long tell_func(void *datasource);
+
 		private:
 			::OggVorbis_File *vf_;
 			Windows::Storage::Streams::IRandomAccessStream^ file_stream_;
 			Windows::Storage::Streams::DataReader^ file_reader_;
-
-			static size_t read_func_(void *ptr, size_t size, size_t nmemb, void *datasource);
-			static int seek_func_(void *datasource, ogg_int64_t offset, int whence);
-			static int close_func_(void *datasource);
-			static long tell_func_(void *datasource);
 		};
 
 	}
