@@ -44,14 +44,17 @@ Platform::String^ string_from_utf8(const char *str, int len = -1)
 {
 	if (!str) return nullptr;
 	if (len < 0) len = (int)strlen(str) + 1;
-	wchar_t *widestr = new wchar_t[len];
-	if (MultiByteToWideChar(CP_ACP, 0, str, len, widestr, len) == 0) {
+	int wlen = MultiByteToWideChar(CP_UTF8, 0, str, len, NULL, 0);
+	if (wlen > 0) {
+		wchar_t *widestr = new wchar_t[wlen];
+		if (0 != MultiByteToWideChar(CP_UTF8, 0, str, len, widestr, wlen)) {
+			Platform::String^ ret = ref new Platform::String(widestr);
+			delete[] widestr;
+			return ret;
+		}
 		delete[] widestr;
-		throw ref new Platform::InvalidArgumentException();
 	}
-	Platform::String^ ret = ref new Platform::String(widestr);
-	delete[] widestr;
-	return ret;
+	throw ref new Platform::InvalidArgumentException();
 }
 
 

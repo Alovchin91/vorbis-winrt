@@ -55,7 +55,7 @@ namespace Vorbisfile {
 			inline Platform::Array<Platform::String^>^ InitializeUserComments() {
 				Platform::Array<Platform::String^>^ arr = ref new Platform::Array<Platform::String^>((unsigned)vc_->comments);
 				for (unsigned i = 0; i < arr->Length; i++) {
-					arr[i] = string_from_utf8(vc_->user_comments[i], vc_->comment_lengths[i]);
+					arr[i] = string_from_utf8(vc_->user_comments[i], vc_->comment_lengths[i] + 1);
 				}
 				return arr;
 			}
