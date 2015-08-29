@@ -1,5 +1,5 @@
 /* libvorbisfile_winrt - Ogg Vorbis for Windows Runtime
- * Copyright (C) 2014  Alexander Ovchinnikov
+ * Copyright (C) 2014-2015  Alexander Ovchinnikov
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -118,9 +118,6 @@ namespace Vorbisfile {
 			void Open(Windows::Storage::Streams::IRandomAccessStream^ fileStream);
 			void Open(Windows::Storage::Streams::IRandomAccessStream^ fileStream, Windows::Storage::Streams::IBuffer^ initial);
 			void Clear();
-
-			static OggVorbisFile^ TestOpen(Windows::Storage::Streams::IRandomAccessStream^ fileStream);
-			static OggVorbisFile^ TestOpen(Windows::Storage::Streams::IRandomAccessStream^ fileStream, Windows::Storage::Streams::IBuffer^ initial);
 
 			Windows::Storage::Streams::IBuffer^ Read(int length);
 			[Windows::Foundation::Metadata::DefaultOverloadAttribute]

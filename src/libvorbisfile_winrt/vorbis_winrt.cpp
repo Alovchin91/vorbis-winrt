@@ -1,5 +1,5 @@
 /* libvorbisfile_winrt - Ogg Vorbis for Windows Runtime
- * Copyright (C) 2014  Alexander Ovchinnikov
+ * Copyright (C) 2014-2015  Alexander Ovchinnikov
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -101,42 +101,6 @@ namespace Vorbisfile {
 
 			file_reader_ = nullptr;
 			file_stream_ = nullptr;
-		}
-
-		OggVorbisFile^ OggVorbisFile::TestOpen(Windows::Storage::Streams::IRandomAccessStream^ fileStream)
-		{
-			return OggVorbisFile::TestOpen(fileStream, nullptr);
-		}
-
-		OggVorbisFile^ OggVorbisFile::TestOpen(Windows::Storage::Streams::IRandomAccessStream^ fileStream, Windows::Storage::Streams::IBuffer^ initial)
-		{
-			OggVorbisFile^ file = ref new OggVorbisFile();
-			file->vf_ = new OggVorbis_File();
-
-			file->file_stream_ = fileStream;
-			file->file_reader_ = ref new Windows::Storage::Streams::DataReader(file->file_stream_);
-
-			char *initial_array = nullptr;
-			long initial_length = 0;
-
-			if (initial) {
-				initial_array = reinterpret_cast<char *>(get_array(initial));
-				initial_length = (long)initial->Length;
-			}
-
-			int ret = ::ov_test_callbacks((void *)file, file->vf_, initial_array, initial_length, ov_winrt_callbacks);
-			if (ret < 0) {
-				file->Clear();
-				throw ref new Platform::COMException(ret);
-			}
-
-			ret = ::ov_test_open(file->vf_);
-			if (ret < 0) {
-				file->Clear();
-				throw ref new Platform::COMException(ret);
-			}
-
-			return file;
 		}
 
 		Windows::Storage::Streams::IBuffer^ OggVorbisFile::Read(int length)
@@ -470,6 +434,13 @@ namespace Vorbisfile {
 			return 0;
 		}
 
+		long OggVorbisFile::tell_func(void *datasource)
+		{
+			OggVorbisFile^ instance = reinterpret_cast<OggVorbisFile^>(datasource);
+			assert(instance && instance->file_stream_);
+			return (long)instance->file_stream_->Position;
+		}
+
 		int OggVorbisFile::close_func(void *datasource)
 		{
 			OggVorbisFile^ instance = reinterpret_cast<OggVorbisFile^>(datasource);
@@ -478,13 +449,6 @@ namespace Vorbisfile {
 			delete instance->file_reader_;
 			instance->file_reader_ = nullptr;
 			return 0;
-		}
-
-		long OggVorbisFile::tell_func(void *datasource)
-		{
-			OggVorbisFile^ instance = reinterpret_cast<OggVorbisFile^>(datasource);
-			assert(instance && instance->file_stream_);
-			return (long)instance->file_stream_->Position;
 		}
 
 	}

@@ -1,5 +1,5 @@
 /* libvorbisfile_winrt - Ogg Vorbis for Windows Runtime
- * Copyright (C) 2014  Alexander Ovchinnikov
+ * Copyright (C) 2014-2015  Alexander Ovchinnikov
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,10 +32,28 @@
 #ifndef _OV_WINRT_INTERNAL_H_
 #define _OV_WINRT_INTERNAL_H_
 
-#include <windows.h>
-#include <inspectable.h>
 #include <robuffer.h>
 #include <ppltasks.h>
+#include <windows.storage.streams.h>
+
+#define THROW_IF_FAILED(hr) { if (FAILED((hr))) throw Platform::Exception::CreateException((hr)); }
+
+
+/* get internal IBuffer array */
+static
+uint8 *get_array(Windows::Storage::Streams::IBuffer^ buffer)
+{
+	HRESULT hr = S_OK;
+	uint8 *pBytes = nullptr;
+
+	Microsoft::WRL::ComPtr<Windows::Storage::Streams::IBufferByteAccess> spBuffAccess;
+	Microsoft::WRL::ComPtr<ABI::Windows::Storage::Streams::IBuffer> spBuff = reinterpret_cast<ABI::Windows::Storage::Streams::IBuffer*>(buffer);
+
+	THROW_IF_FAILED(spBuff.As(&spBuffAccess));
+	THROW_IF_FAILED(spBuffAccess->Buffer(&pBytes));
+
+	return pBytes;
+}
 
 
 /* convert UTF-8 to String */
@@ -43,31 +61,21 @@ static
 Platform::String^ string_from_utf8(const char *str, int len = -1)
 {
 	if (!str) return nullptr;
-	if (len < 0) len = (int)strlen(str) + 1;
+
 	int wlen = MultiByteToWideChar(CP_UTF8, 0, str, len, NULL, 0);
-	if (wlen > 0) {
-		wchar_t *widestr = new wchar_t[wlen];
-		if (0 != MultiByteToWideChar(CP_UTF8, 0, str, len, widestr, wlen)) {
-			Platform::String^ ret = ref new Platform::String(widestr);
-			delete[] widestr;
-			return ret;
-		}
-		delete[] widestr;
+	if (0 == wlen) {
+		throw ref new Platform::InvalidArgumentException();
 	}
-	throw ref new Platform::InvalidArgumentException();
-}
 
+	wchar_t *widestr = new wchar_t[wlen];
+	if (0 == MultiByteToWideChar(CP_UTF8, 0, str, len, widestr, wlen)) {
+		delete[] widestr;
+		throw ref new Platform::InvalidArgumentException();
+	}
 
-/* get internal IBuffer array */
-static
-uint8 *get_array(Windows::Storage::Streams::IBuffer^ buffer)
-{
-	IInspectable *inspectable = reinterpret_cast<IInspectable *>(buffer);
-	Microsoft::WRL::ComPtr<Windows::Storage::Streams::IBufferByteAccess> spBuffAccess;
-	HRESULT hr = inspectable->QueryInterface(__uuidof(Windows::Storage::Streams::IBufferByteAccess), (void **)&spBuffAccess);
-	uint8 *pReadBuffer = nullptr;
-	spBuffAccess->Buffer(&pReadBuffer);
-	return pReadBuffer;
+	Platform::String^ ret = ref new Platform::String(widestr);
+	delete[] widestr;
+	return ret;
 }
 
 

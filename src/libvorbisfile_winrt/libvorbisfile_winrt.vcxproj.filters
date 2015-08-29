@@ -13,10 +13,13 @@
       <UniqueIdentifier>{d1de0288-de30-4d32-bf78-51de03402153}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Public Header Files">
+      <UniqueIdentifier>{b309112a-87ab-4766-bb27-99a43e7dcd8d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SolutionDir)include\vorbis\vorbis_winrt.h">
-      <Filter>Header Files</Filter>
+      <Filter>Public Header Files</Filter>
     </ClInclude>
     <ClInclude Include="internal.h">
       <Filter>Header Files</Filter>
